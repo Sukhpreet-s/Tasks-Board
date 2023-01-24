@@ -1,0 +1,21 @@
+.main {
+  padding: 1em;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.tasklist {
+  border: 3px solid #754f5b;
+  background: var(--light-color-1);
+  border-radius: 5px;
+  padding: 1em;
+  width: 300px;
+}
+
+.task {
+  background: var(--light-color-2);
+  box-shadow: var(--mid-color) 0px 5px 8px;
+  border-radius: 5px;
+  padding: 0.5em;
+}

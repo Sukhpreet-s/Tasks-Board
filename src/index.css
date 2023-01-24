@@ -1,0 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Tilt+Neon&display=swap");
+
+:root {
+  --light-color-1: #f9e0d9;
+  --light-color-2: #e6dbd0;
+  --mid-color: #7d6167;
+  --dark-color-1: #754f5b;
+  --dark-color-2: #5d4954;
+}
+
+body {
+  font-family: "Tilt Neon", cursive;
+}
