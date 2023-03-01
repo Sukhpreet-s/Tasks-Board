@@ -19,7 +19,6 @@ const data: TaskList[] = [
     tasks: [
       { taskId: "task-5", title: "Email the doctor for an appointment" },
       { taskId: "task-6", title: "Do meal prep for the week" },
-      { taskId: "task-7", title: "Fill out tax forms" },
     ],
   },
 ];
