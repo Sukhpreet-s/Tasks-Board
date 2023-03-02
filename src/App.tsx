@@ -22,6 +22,18 @@ function App() {
     React.Dispatch<React.SetStateAction<TaskList[]>>
   ] = useState(data);
 
+  const addTask: React.MouseEventHandler<HTMLButtonElement> = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    const listIdx: string | undefined = event.currentTarget.dataset.listidx;
+
+    if (!listIdx) return;
+
+    // Open dialog box to add task.
+
+    console.log("adding new list - in progress");
+  };
+
   const handleDragEnd: OnDragEndResponder = ({
     destination,
     source,
@@ -60,7 +72,7 @@ function App() {
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="main">
-        {lists.map((list: TaskList) => (
+        {lists.map((list: TaskList, index: number) => (
           <Droppable droppableId={list.listId} key={list.listId}>
             {(provided: DroppableProvided) => (
               <div
@@ -68,7 +80,17 @@ function App() {
                 {...provided.droppableProps}
                 ref={provided.innerRef}
               >
-                <h2>{list.title}</h2>
+                <div className="header">
+                  <h2>{list.title}</h2>
+                  <button
+                    className="add-task-btn"
+                    type="button"
+                    data-listidx={index}
+                    onClick={handleAddCardBtnClick}
+                  >
+                    +
+                  </button>
+                </div>
                 {list.tasks.map((task: Task, index: number) => (
                   <Draggable
                     draggableId={task.taskId}
