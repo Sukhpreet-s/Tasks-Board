@@ -7,11 +7,36 @@
 }
 
 .tasklist {
-  border: 3px solid #754f5b;
+  border: 3px solid var(--dark-color-1);
   background: var(--light-color-1);
   border-radius: 5px;
   padding: 1em;
   width: 300px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-task-btn {
+  color: var(--light-color-1);
+  border: 2px solid var(--mid-color);
+  border-radius: 3px;
+  background-color: var(--mid-color);
+  box-shadow: var(--mid-color) 0px 1px 8px;
+  transition: box-shadow 0.1s, transform 0.1s;
+}
+
+.add-task-btn:active {
+  box-shadow: none;
+  transform: scale(0.98);
+}
+
+.add-task-btn:hover {
+  background-color: var(--dark-color-2);
+  border-color: var(--dark-color-2);
 }
 
 .task {

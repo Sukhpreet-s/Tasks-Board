@@ -35,5 +35,9 @@ interface Task {
   title: string;
 }
 
+interface CreateTask {
+  title: string;
+}
+
 export default data;
-export type { TaskList, Task };
+export type { TaskList, Task, CreateTask };

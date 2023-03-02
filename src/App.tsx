@@ -11,7 +11,7 @@ import Droppable from "./DroppableV2";
 
 import { useState } from "react";
 
-import { TaskList, Task } from "#root/data";
+import { TaskList, Task, CreateTask } from "#root/data";
 import data from "#root/data";
 
 import "./App.css";
@@ -22,10 +22,19 @@ function App() {
     React.Dispatch<React.SetStateAction<TaskList[]>>
   ] = useState(data);
 
-  const handleDragEnd: OnDragEndResponder = ({
-    destination,
-    source,
-  }: DropResult) => {
+  function handleAddCardBtnClick(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ): void {
+    const listIdx: string | undefined = event.currentTarget.dataset.listidx;
+
+    if (!listIdx) return;
+
+    // Open dialog box to add task.
+
+    console.log("adding new list - in progress");
+  }
+
+  function handleDragEnd({ destination, source }: DropResult): void {
     if (
       !destination ||
       (destination.droppableId === source.droppableId &&
@@ -55,12 +64,12 @@ function App() {
     newLists[moveToListIndex].tasks.splice(destination.index, 0, movingTask);
 
     setLists(newLists);
-  };
+  }
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="main">
-        {lists.map((list: TaskList) => (
+        {lists.map((list: TaskList, index: number) => (
           <Droppable droppableId={list.listId} key={list.listId}>
             {(provided: DroppableProvided) => (
               <div
@@ -68,7 +77,17 @@ function App() {
                 {...provided.droppableProps}
                 ref={provided.innerRef}
               >
-                <h2>{list.title}</h2>
+                <div className="header">
+                  <h2>{list.title}</h2>
+                  <button
+                    className="add-task-btn"
+                    type="button"
+                    data-listidx={index}
+                    onClick={handleAddCardBtnClick}
+                  >
+                    +
+                  </button>
+                </div>
                 {list.tasks.map((task: Task, index: number) => (
                   <Draggable
                     draggableId={task.taskId}
