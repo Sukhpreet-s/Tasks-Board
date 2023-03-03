@@ -3,6 +3,7 @@ import {
   Draggable,
   DroppableProvided,
   DraggableProvided,
+  OnDragEndResponder,
   DropResult,
 } from "react-beautiful-dnd";
 
@@ -67,7 +68,10 @@ function App() {
     incrementTaskNumber();
   }
 
-  function handleDragEnd({ destination, source }: DropResult): void {
+  const handleDragEnd: OnDragEndResponder = ({
+    destination,
+    source,
+  }: DropResult) => {
     if (
       !destination ||
       (destination.droppableId === source.droppableId &&
@@ -97,7 +101,7 @@ function App() {
     newLists[moveToListIndex].tasks.splice(destination.index, 0, movingTask);
 
     setLists(newLists);
-  }
+  };
 
   return (
     <main>
