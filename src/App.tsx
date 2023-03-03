@@ -3,7 +3,6 @@ import {
   Draggable,
   DroppableProvided,
   DraggableProvided,
-  OnDragEndResponder,
   DropResult,
 } from "react-beautiful-dnd";
 
@@ -11,27 +10,61 @@ import Droppable from "./DroppableV2";
 
 import { useState } from "react";
 
-import { TaskList, Task, CreateTask } from "#root/data";
+import { TaskList, Task, TASK_NUMBER, incrementTaskNumber } from "#root/data";
 import data from "#root/data";
 
 import "./App.css";
 
 function App() {
+  // States
   const [lists, setLists]: [
     TaskList[],
     React.Dispatch<React.SetStateAction<TaskList[]>>
   ] = useState(data);
 
+  const [createTaskCardListId, setCreateTaskCardListId]: [
+    string,
+    React.Dispatch<React.SetStateAction<string>>
+  ] = useState("");
+
+  const [newTaskTitle, setNewTaskTitle]: [
+    string,
+    React.Dispatch<React.SetStateAction<string>>
+  ] = useState("");
+
+  // Event handlers
   function handleAddCardBtnClick(
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void {
-    const listIdx: string | undefined = event.currentTarget.dataset.listidx;
+    const listId: string | undefined = event.currentTarget.dataset.listid;
 
-    if (!listIdx) return;
+    if (!listId) return;
 
-    // Open dialog box to add task.
+    setCreateTaskCardListId(listId);
+  }
 
-    console.log("adding new list - in progress");
+  function handleTaskSave(event: React.MouseEvent<HTMLButtonElement>): void {
+    event.preventDefault();
+
+    const listIdx: number = Number(event.currentTarget.dataset.listidx);
+    if (isNaN(listIdx)) return;
+
+    if (newTaskTitle === "") return;
+
+    const newTask: Task = {
+      taskId: `task-${TASK_NUMBER}`,
+      title: newTaskTitle,
+    };
+
+    const newLists: TaskList[] = [...lists];
+    newLists[listIdx].tasks.push(newTask);
+
+    setLists(newLists);
+
+    setCreateTaskCardListId("");
+    setNewTaskTitle("");
+
+    incrementTaskNumber();
   }
 
   function handleDragEnd({ destination, source }: DropResult): void {
@@ -67,52 +100,77 @@ function App() {
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="main">
-        {lists.map((list: TaskList, index: number) => (
-          <Droppable droppableId={list.listId} key={list.listId}>
-            {(provided: DroppableProvided) => (
-              <div
-                className="tasklist"
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-              >
-                <div className="header">
-                  <h2>{list.title}</h2>
-                  <button
-                    className="add-task-btn"
-                    type="button"
-                    data-listidx={index}
-                    onClick={handleAddCardBtnClick}
+    <main>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="main">
+          {lists.map((list: TaskList, index: number) => (
+            <Droppable droppableId={list.listId} key={list.listId}>
+              {(provided: DroppableProvided) => (
+                <div
+                  className="tasklist"
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  <div className="header">
+                    <h2>{list.title}</h2>
+                    <button
+                      className="add-task-btn"
+                      type="button"
+                      data-listid={list.listId}
+                      onClick={handleAddCardBtnClick}
+                    >
+                      +
+                    </button>
+                  </div>
+                  {list.tasks.map((task: Task, index: number) => (
+                    <Draggable
+                      draggableId={task.taskId}
+                      index={index}
+                      key={task.taskId}
+                    >
+                      {(dragProvided: DraggableProvided) => (
+                        <p
+                          className="task"
+                          ref={dragProvided.innerRef}
+                          {...dragProvided.draggableProps}
+                          {...dragProvided.dragHandleProps}
+                        >
+                          {task.title}
+                        </p>
+                      )}
+                    </Draggable>
+                  ))}
+                  <div
+                    className={`task ${
+                      createTaskCardListId === list.listId ? "" : "hide"
+                    }`}
                   >
-                    +
-                  </button>
+                    <input
+                      className="form-control form-control-sm mb-2"
+                      value={newTaskTitle}
+                      onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        setNewTaskTitle(event.target.value)
+                      }
+                      type="text"
+                      placeholder="Title here..."
+                    />
+                    <button
+                      type="button"
+                      data-listidx={index}
+                      className="btn btn-sm px-1 py-0"
+                      onClick={handleTaskSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                  {provided.placeholder}
                 </div>
-                {list.tasks.map((task: Task, index: number) => (
-                  <Draggable
-                    draggableId={task.taskId}
-                    index={index}
-                    key={task.taskId}
-                  >
-                    {(dragProvided: DraggableProvided) => (
-                      <p
-                        className="task"
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        {...dragProvided.dragHandleProps}
-                      >
-                        {task.title}
-                      </p>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        ))}
-      </div>
-    </DragDropContext>
+              )}
+            </Droppable>
+          ))}
+        </div>
+      </DragDropContext>
+    </main>
   );
 }
 

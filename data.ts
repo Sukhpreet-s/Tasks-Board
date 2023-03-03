@@ -24,6 +24,11 @@ const data: TaskList[] = [
   },
 ];
 
+export let TASK_NUMBER: number = 8;
+export function incrementTaskNumber(): void {
+  TASK_NUMBER += 1;
+}
+
 interface TaskList {
   listId: string;
   title: string;
@@ -35,9 +40,5 @@ interface Task {
   title: string;
 }
 
-interface CreateTask {
-  title: string;
-}
-
 export default data;
-export type { TaskList, Task, CreateTask };
+export type { TaskList, Task };
