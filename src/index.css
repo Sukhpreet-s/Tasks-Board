@@ -11,3 +11,17 @@
 body {
   font-family: "Tilt Neon", cursive;
 }
+
+button {
+  background-color: var(--mid-color) !important;
+  color: var(--light-color-1) !important;
+}
+
+.hide {
+  display: none;
+}
+
+input:focus {
+  box-shadow: none !important;
+  border-color: var(--mid-color) !important;
+}
