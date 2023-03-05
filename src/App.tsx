@@ -9,7 +9,7 @@ import {
 
 import Droppable from "./DroppableV2";
 
-import { useState, useRef, createRef, RefObject } from "react";
+import { useState, useRef, createRef, RefObject, useEffect } from "react";
 
 import { TaskList, Task, TASK_NUMBER, incrementTaskNumber } from "#root/data";
 import data from "#root/data";
@@ -23,10 +23,10 @@ function App() {
     React.Dispatch<React.SetStateAction<TaskList[]>>
   ] = useState(data);
 
-  const [createTaskCardListId, setCreateTaskCardListId]: [
-    string,
-    React.Dispatch<React.SetStateAction<string>>
-  ] = useState("");
+  const [createTaskCardListIdx, setCreateTaskCardListIdx]: [
+    number,
+    React.Dispatch<React.SetStateAction<number>>
+  ] = useState(NaN);
 
   const [newTaskTitle, setNewTaskTitle]: [
     string,
@@ -36,7 +36,16 @@ function App() {
   const inputRefs: React.MutableRefObject<RefObject<HTMLInputElement>[]> =
     useRef(lists.map(() => createRef()));
 
+  // Effects
+  useEffect(() => {
+    if (isNaN(createTaskCardListIdx)) return;
+    inputRefs.current[createTaskCardListIdx].current?.focus();
+  }, [createTaskCardListIdx]);
+
   // Functions
+  /**
+   * Save the task to the list.
+   */
   const addTask = (listIdx: number): void => {
     const newTask: Task = {
       taskId: `task-${TASK_NUMBER}`,
@@ -47,31 +56,28 @@ function App() {
     newLists[listIdx].tasks.push(newTask);
 
     setLists(newLists);
-
-    setCreateTaskCardListId("");
-    setNewTaskTitle("");
-
-    incrementTaskNumber();
   };
 
   // Event handlers
+
+  /**
+   * Display the task card in a specified list.
+   */
   function handleAddCardBtnClick(
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void {
-    const listId: string | undefined = event.currentTarget.dataset.listid;
+    const listIdx: number | undefined = Number(
+      event.currentTarget.dataset.listidx
+    );
 
-    if (!listId) return;
-
-    setCreateTaskCardListId(listId);
-
-    console.log("input ref: ", inputRefs);
-    const listIdx: number = Number(event.currentTarget.dataset.listidx);
     if (isNaN(listIdx)) return;
-    const inputEle: HTMLInputElement = inputRefs.current[listIdx].current!;
-    console.log("current ref: ", inputEle);
-    // inputEle.focus();
+
+    setCreateTaskCardListIdx(listIdx);
   }
 
+  /**
+   * Save task when event triggered (Save button, input box blur event)
+   */
   function handleTaskSave(event: React.MouseEvent<HTMLButtonElement>): void {
     event.preventDefault();
 
@@ -80,8 +86,15 @@ function App() {
 
     if (newTaskTitle === "") return;
     addTask(listIdx);
+
+    setCreateTaskCardListIdx(NaN);
+    setNewTaskTitle("");
+    incrementTaskNumber();
   }
 
+  /**
+   * Drag element from one list to another.
+   */
   const handleDragEnd: OnDragEndResponder = ({
     destination,
     source,
@@ -92,9 +105,6 @@ function App() {
         destination.index === source.index)
     )
       return;
-
-    console.log("Destination: ", destination);
-    console.log("Source: ", source);
 
     const newLists: TaskList[] = [...lists];
 
@@ -117,16 +127,25 @@ function App() {
     setLists(newLists);
   };
 
+  /**
+   * Save or Clear the task card on blur event on input box.
+   */
   const handleFocusOut = (event: React.FocusEvent<HTMLInputElement>): void => {
     const listIdx: number = Number(event.currentTarget.dataset.listidx);
     if (isNaN(listIdx)) return;
 
+    // Clear the task.
     if (newTaskTitle === "") {
-      setCreateTaskCardListId("");
+      setCreateTaskCardListIdx(NaN);
       return;
     }
 
+    // Save the task.
     addTask(listIdx);
+
+    setCreateTaskCardListIdx(NaN);
+    setNewTaskTitle("");
+    incrementTaskNumber();
   };
 
   return (
@@ -173,7 +192,7 @@ function App() {
                   ))}
                   <div
                     className={`task ${
-                      createTaskCardListId === list.listId ? "" : "hide"
+                      createTaskCardListIdx === index ? "" : "hide"
                     }`}
                   >
                     <input
@@ -185,7 +204,6 @@ function App() {
                       onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
                         setNewTaskTitle(event.target.value)
                       }
-                      onFocus={() => console.log("Input focused!!!")}
                       type="text"
                       placeholder="Title here..."
                     />
