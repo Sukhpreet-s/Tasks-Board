@@ -9,7 +9,7 @@ import {
 
 import Droppable from "./DroppableV2";
 
-import { useState } from "react";
+import { useState, useRef, createRef, RefObject } from "react";
 
 import { TaskList, Task, TASK_NUMBER, incrementTaskNumber } from "#root/data";
 import data from "#root/data";
@@ -33,25 +33,11 @@ function App() {
     React.Dispatch<React.SetStateAction<string>>
   ] = useState("");
 
-  // Event handlers
-  function handleAddCardBtnClick(
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ): void {
-    const listId: string | undefined = event.currentTarget.dataset.listid;
+  const inputRefs: React.MutableRefObject<RefObject<HTMLInputElement>[]> =
+    useRef(lists.map(() => createRef()));
 
-    if (!listId) return;
-
-    setCreateTaskCardListId(listId);
-  }
-
-  function handleTaskSave(event: React.MouseEvent<HTMLButtonElement>): void {
-    event.preventDefault();
-
-    const listIdx: number = Number(event.currentTarget.dataset.listidx);
-    if (isNaN(listIdx)) return;
-
-    if (newTaskTitle === "") return;
-
+  // Functions
+  const addTask = (listIdx: number): void => {
     const newTask: Task = {
       taskId: `task-${TASK_NUMBER}`,
       title: newTaskTitle,
@@ -66,6 +52,34 @@ function App() {
     setNewTaskTitle("");
 
     incrementTaskNumber();
+  };
+
+  // Event handlers
+  function handleAddCardBtnClick(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ): void {
+    const listId: string | undefined = event.currentTarget.dataset.listid;
+
+    if (!listId) return;
+
+    setCreateTaskCardListId(listId);
+
+    console.log("input ref: ", inputRefs);
+    const listIdx: number = Number(event.currentTarget.dataset.listidx);
+    if (isNaN(listIdx)) return;
+    const inputEle: HTMLInputElement = inputRefs.current[listIdx].current!;
+    console.log("current ref: ", inputEle);
+    // inputEle.focus();
+  }
+
+  function handleTaskSave(event: React.MouseEvent<HTMLButtonElement>): void {
+    event.preventDefault();
+
+    const listIdx: number = Number(event.currentTarget.dataset.listidx);
+    if (isNaN(listIdx)) return;
+
+    if (newTaskTitle === "") return;
+    addTask(listIdx);
   }
 
   const handleDragEnd: OnDragEndResponder = ({
@@ -103,6 +117,18 @@ function App() {
     setLists(newLists);
   };
 
+  const handleFocusOut = (event: React.FocusEvent<HTMLInputElement>): void => {
+    const listIdx: number = Number(event.currentTarget.dataset.listidx);
+    if (isNaN(listIdx)) return;
+
+    if (newTaskTitle === "") {
+      setCreateTaskCardListId("");
+      return;
+    }
+
+    addTask(listIdx);
+  };
+
   return (
     <main>
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -121,6 +147,7 @@ function App() {
                       className="add-task-btn"
                       type="button"
                       data-listid={list.listId}
+                      data-listidx={index}
                       onClick={handleAddCardBtnClick}
                     >
                       +
@@ -152,9 +179,13 @@ function App() {
                     <input
                       className="form-control form-control-sm mb-2"
                       value={newTaskTitle}
+                      ref={inputRefs.current[index]}
+                      data-listidx={index}
+                      onBlur={handleFocusOut}
                       onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
                         setNewTaskTitle(event.target.value)
                       }
+                      onFocus={() => console.log("Input focused!!!")}
                       type="text"
                       placeholder="Title here..."
                     />
