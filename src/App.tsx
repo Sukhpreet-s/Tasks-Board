@@ -62,8 +62,6 @@ function App() {
   const inputRefs: React.MutableRefObject<RefObject<HTMLInputElement>[]> =
     useRef(lists.map(() => createRef()));
 
-  const currentInputEle: HTMLInputElement | null = null;
-
   // Effects
   useEffect(() => {
     if (isNaN(createTaskCardListIdx)) return;
@@ -88,6 +86,7 @@ function App() {
 
   const editExistingTask = (listIdx: number, taskIdx: number): void => {
     const task: Task = lists[listIdx].tasks[taskIdx];
+    task.title = newTaskTitle;
 
     const newLists: TaskList[] = [...lists];
     newLists[listIdx].tasks.splice(taskIdx, 1, task);
@@ -220,6 +219,7 @@ function App() {
 
   return (
     <main>
+      {newTaskTitle}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="main">
           {lists.map((list: TaskList, index: number) => (
