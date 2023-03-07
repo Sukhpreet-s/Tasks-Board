@@ -62,6 +62,8 @@ function App() {
   const inputRefs: React.MutableRefObject<RefObject<HTMLInputElement>[]> =
     useRef(lists.map(() => createRef()));
 
+  const currentInputEle: HTMLInputElement | null = null;
+
   // Effects
   useEffect(() => {
     if (isNaN(createTaskCardListIdx)) return;
@@ -257,6 +259,7 @@ function App() {
                               data-listidx={index}
                               data-taskidx={taskIndex}
                               data-actiontype={ACTION_TYPE.EDIT}
+                              autoFocus
                               onBlur={handleFocusOut}
                               onInput={(
                                 event: React.ChangeEvent<HTMLInputElement>
