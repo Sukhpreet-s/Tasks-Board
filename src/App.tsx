@@ -9,12 +9,23 @@ import {
 
 import Droppable from "./DroppableV2";
 
-import { useState, useRef, createRef, RefObject, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  createRef,
+  RefObject,
+  useEffect,
+} from "react";
 
 import { TaskList, Task, TASK_NUMBER, incrementTaskNumber } from "#root/data";
 import data from "#root/data";
 
 import "./App.css";
+
+const ACTION_TYPE = {
+  ADD: "add",
+  EDIT: "edit",
+};
 
 function App() {
   // States
@@ -28,13 +39,30 @@ function App() {
     React.Dispatch<React.SetStateAction<number>>
   ] = useState(NaN);
 
+  const [taskIdx, setTaskIdx]: [
+    number,
+    React.Dispatch<React.SetStateAction<number>>
+  ] = useState(NaN);
+
   const [newTaskTitle, setNewTaskTitle]: [
     string,
     React.Dispatch<React.SetStateAction<string>>
   ] = useState("");
 
+  const [isEditTask, setIsEditTask]: [
+    boolean,
+    React.Dispatch<React.SetStateAction<boolean>>
+  ] = useState(false);
+
+  const [isAddTask, setIsAddTask]: [
+    boolean,
+    React.Dispatch<React.SetStateAction<boolean>>
+  ] = useState(false);
+
   const inputRefs: React.MutableRefObject<RefObject<HTMLInputElement>[]> =
     useRef(lists.map(() => createRef()));
+
+  const currentInputEle: HTMLInputElement | null = null;
 
   // Effects
   useEffect(() => {
@@ -58,6 +86,15 @@ function App() {
     setLists(newLists);
   };
 
+  const editExistingTask = (listIdx: number, taskIdx: number): void => {
+    const task: Task = lists[listIdx].tasks[taskIdx];
+
+    const newLists: TaskList[] = [...lists];
+    newLists[listIdx].tasks.splice(taskIdx, 1, task);
+
+    setLists(newLists);
+  };
+
   // Event handlers
 
   /**
@@ -73,6 +110,7 @@ function App() {
     if (isNaN(listIdx)) return;
 
     setCreateTaskCardListIdx(listIdx);
+    setIsAddTask(true);
   }
 
   /**
@@ -84,12 +122,12 @@ function App() {
     const listIdx: number = Number(event.currentTarget.dataset.listidx);
     if (isNaN(listIdx)) return;
 
-    if (newTaskTitle === "") return;
-    addTask(listIdx);
+    const taskIdx: number = Number(event.currentTarget.dataset.taskidx);
 
-    setCreateTaskCardListIdx(NaN);
-    setNewTaskTitle("");
-    incrementTaskNumber();
+    const actionType: string | undefined =
+      event.currentTarget.dataset.actiontype!;
+
+    handleSave(actionType, listIdx, taskIdx);
   }
 
   /**
@@ -134,18 +172,50 @@ function App() {
     const listIdx: number = Number(event.currentTarget.dataset.listidx);
     if (isNaN(listIdx)) return;
 
-    // Clear the task.
-    if (newTaskTitle === "") {
-      setCreateTaskCardListIdx(NaN);
-      return;
+    const taskIdx: number = Number(event.currentTarget.dataset.taskidx);
+
+    const actionType: string | undefined =
+      event.currentTarget.dataset.actiontype!;
+
+    handleSave(actionType, listIdx, taskIdx);
+  };
+
+  const handleSave = (actionType: string, listIdx: number, taskIdx: number) => {
+    switch (actionType) {
+      case ACTION_TYPE.ADD:
+        // Clear the task.
+        if (newTaskTitle === "") {
+          setCreateTaskCardListIdx(NaN);
+          setIsAddTask(false);
+          return;
+        }
+
+        // Save the task.
+        addTask(listIdx);
+
+        setCreateTaskCardListIdx(NaN);
+        setNewTaskTitle("");
+        setIsAddTask(false);
+        incrementTaskNumber();
+        break;
+
+      case ACTION_TYPE.EDIT:
+        if (newTaskTitle === "") {
+          setTaskIdx(NaN);
+          setCreateTaskCardListIdx(NaN);
+          setIsEditTask(false);
+          return;
+        }
+
+        // Edit the task
+        if (isNaN(taskIdx)) return;
+        editExistingTask(listIdx, taskIdx);
+
+        setTaskIdx(NaN);
+        setNewTaskTitle("");
+        setCreateTaskCardListIdx(NaN);
+        setIsEditTask(false);
     }
-
-    // Save the task.
-    addTask(listIdx);
-
-    setCreateTaskCardListIdx(NaN);
-    setNewTaskTitle("");
-    incrementTaskNumber();
   };
 
   return (
@@ -172,33 +242,71 @@ function App() {
                       +
                     </button>
                   </div>
-                  {list.tasks.map((task: Task, index: number) => (
+                  {list.tasks.map((task: Task, taskIndex: number) => (
                     <Draggable
                       draggableId={task.taskId}
-                      index={index}
+                      index={taskIndex}
                       key={task.taskId}
                     >
-                      {(dragProvided: DraggableProvided) => (
-                        <p
-                          className="task"
-                          ref={dragProvided.innerRef}
-                          {...dragProvided.draggableProps}
-                          {...dragProvided.dragHandleProps}
-                        >
-                          {task.title}
-                        </p>
-                      )}
+                      {(dragProvided: DraggableProvided) =>
+                        isEditTask &&
+                        taskIdx === taskIndex &&
+                        index === createTaskCardListIdx ? (
+                          <div className="task mb-4">
+                            <input
+                              className="form-control form-control-sm mb-2"
+                              value={newTaskTitle}
+                              data-listidx={index}
+                              data-taskidx={taskIndex}
+                              data-actiontype={ACTION_TYPE.EDIT}
+                              autoFocus
+                              onBlur={handleFocusOut}
+                              onInput={(
+                                event: React.ChangeEvent<HTMLInputElement>
+                              ) => setNewTaskTitle(event.target.value)}
+                              type="text"
+                              placeholder="Title here..."
+                            />
+                            <button
+                              type="button"
+                              data-listidx={index}
+                              data-taskidx={taskIndex}
+                              data-actiontype={ACTION_TYPE.EDIT}
+                              className="btn btn-sm px-1 py-0"
+                              onClick={handleTaskSave}
+                            >
+                              Save
+                            </button>
+                          </div>
+                        ) : (
+                          <p
+                            className="task"
+                            onDoubleClick={() => {
+                              setIsEditTask(true);
+                              setTaskIdx(taskIndex);
+                              setCreateTaskCardListIdx(index);
+                              setNewTaskTitle(task.title);
+                            }}
+                            ref={dragProvided.innerRef}
+                            {...dragProvided.draggableProps}
+                            {...dragProvided.dragHandleProps}
+                          >
+                            {task.title}
+                          </p>
+                        )
+                      }
                     </Draggable>
                   ))}
                   <div
                     className={`task ${
-                      createTaskCardListIdx === index ? "" : "hide"
+                      createTaskCardListIdx === index && isAddTask ? "" : "hide"
                     }`}
                   >
                     <input
                       className="form-control form-control-sm mb-2"
                       value={newTaskTitle}
                       ref={inputRefs.current[index]}
+                      data-actiontype={ACTION_TYPE.ADD}
                       data-listidx={index}
                       onBlur={handleFocusOut}
                       onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -210,6 +318,7 @@ function App() {
                     <button
                       type="button"
                       data-listidx={index}
+                      data-actiontype={ACTION_TYPE.ADD}
                       className="btn btn-sm px-1 py-0"
                       onClick={handleTaskSave}
                     >
