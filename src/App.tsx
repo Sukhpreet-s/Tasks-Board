@@ -15,6 +15,7 @@ import React, {
   createRef,
   RefObject,
   useEffect,
+  useReducer,
 } from "react";
 
 import { TaskList, Task, TASK_NUMBER, incrementTaskNumber } from "#root/data";
@@ -26,6 +27,15 @@ const ACTION_TYPE = {
   ADD: "add",
   EDIT: "edit",
 };
+
+// function useData() {
+//   const [state, dispatch] = useReducer((state, action)=> {
+//     switch (action.type) {
+//       case ACTION_TYPE.ADD:
+        
+//     }
+//   }, data)
+// }
 
 function App() {
   // States
@@ -49,15 +59,9 @@ function App() {
     React.Dispatch<React.SetStateAction<string>>
   ] = useState("");
 
-  const [isEditTask, setIsEditTask]: [
-    boolean,
-    React.Dispatch<React.SetStateAction<boolean>>
-  ] = useState(false);
+  const [isEditTask, setIsEditTask] = useState<boolean>(false);
 
-  const [isAddTask, setIsAddTask]: [
-    boolean,
-    React.Dispatch<React.SetStateAction<boolean>>
-  ] = useState(false);
+  const [isAddTask, setIsAddTask] = useState<boolean>(false);
 
   const inputRefs: React.MutableRefObject<RefObject<HTMLInputElement>[]> =
     useRef(lists.map(() => createRef()));
@@ -199,6 +203,8 @@ function App() {
         break;
 
       case ACTION_TYPE.EDIT:
+        /** newTaskTitle only changes if the input change event fires. 
+        And the input event does not fire without any change in the input field. So the state newTaskTitle remains empty. */
         if (newTaskTitle === "") {
           setTaskIdx(NaN);
           setCreateTaskCardListIdx(NaN);
@@ -219,7 +225,6 @@ function App() {
 
   return (
     <main>
-      {newTaskTitle}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="main">
           {lists.map((list: TaskList, index: number) => (
@@ -273,7 +278,9 @@ function App() {
                               data-taskidx={taskIndex}
                               data-actiontype={ACTION_TYPE.EDIT}
                               className="btn btn-sm px-1 py-0"
-                              onClick={handleTaskSave}
+                              onClick={() => {
+                                
+                              }}
                             >
                               Save
                             </button>
@@ -297,34 +304,33 @@ function App() {
                       }
                     </Draggable>
                   ))}
-                  <div
-                    className={`task ${
-                      createTaskCardListIdx === index && isAddTask ? "" : "hide"
-                    }`}
-                  >
-                    <input
-                      className="form-control form-control-sm mb-2"
-                      value={newTaskTitle}
-                      ref={inputRefs.current[index]}
-                      data-actiontype={ACTION_TYPE.ADD}
-                      data-listidx={index}
-                      onBlur={handleFocusOut}
-                      onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewTaskTitle(event.target.value)
-                      }
-                      type="text"
-                      placeholder="Title here..."
-                    />
-                    <button
-                      type="button"
-                      data-listidx={index}
-                      data-actiontype={ACTION_TYPE.ADD}
-                      className="btn btn-sm px-1 py-0"
-                      onClick={handleTaskSave}
-                    >
-                      Save
-                    </button>
-                  </div>
+                  {isAddTask && createTaskCardListIdx === index && (
+                    <div className="task">
+                      <input
+                        className="form-control form-control-sm mb-2"
+                        value={newTaskTitle}
+                        autoFocus
+                        // ref={inputRefs.current[index]}
+                        data-actiontype={ACTION_TYPE.ADD}
+                        data-listidx={index}
+                        onBlur={handleFocusOut}
+                        onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
+                          setNewTaskTitle(event.target.value)
+                        }
+                        type="text"
+                        placeholder="Title here..."
+                      />
+                      <button
+                        type="button"
+                        data-listidx={index}
+                        data-actiontype={ACTION_TYPE.ADD}
+                        className="btn btn-sm px-1 py-0"
+                        onClick={handleTaskSave}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  )}
                   {provided.placeholder}
                 </div>
               )}
