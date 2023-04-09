@@ -9,6 +9,13 @@ const addToObject = function (
   var temp: Record<string, any> = {};
   var i = 0;
 
+  // If no index or if index greater than obj length, add to the end
+  if (index > Object.keys(obj).length - 1 && key && value) {
+    temp = { ...obj };
+    temp[key] = value;
+    return temp;
+  }
+
   // Loop through the original object
   for (var prop in obj) {
     if (obj.hasOwnProperty(prop)) {
@@ -23,11 +30,6 @@ const addToObject = function (
       // Increase the count
       i++;
     }
-  }
-
-  // If no index, add to the end
-  if (!index && key && value) {
-    temp[key] = value;
   }
 
   return temp;

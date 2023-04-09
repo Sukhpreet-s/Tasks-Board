@@ -19,6 +19,11 @@ function NewTaskCard({ listId, setShowCard }: Props) {
 
   const handleFocusOut = (): void => {
     if (taskTitle === "") setShowCard(false);
+    else {
+      addNewTask(listId, newTaskId, taskTitle);
+      incrementTaskIdNumber(); // Increment task number after using it
+      setShowCard(false);
+    }
   };
 
   const handleCancel = (): void => {

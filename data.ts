@@ -17,14 +17,14 @@ const data: Record<string, TaskList> = {
   },
 };
 
-interface TaskList {
+type TaskList = {
   title: string;
   tasks: Record<string, Task>;
-}
+};
 
-interface Task {
+type Task = {
   title: string;
-}
+};
 
 export default data;
 export type { TaskList, Task };

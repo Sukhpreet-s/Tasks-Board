@@ -153,37 +153,56 @@ function taskReducer(state: State, action: Action): State {
     };
   } else if (action.type === "MOVE") {
     const { from, to } = action.payload;
+
+    // If moved inside the same list.
     if (from.listId === to.listId) {
-      let toIndex = to.index;
-
-      if (from.index === to.index) return { ...state };
-      if (from.index < to.index) {
-        toIndex = toIndex - 1;
-      } else {
-        toIndex = toIndex + 1;
-      }
-
       const listId = from.listId;
       const taskId = Object.keys(state[listId].tasks).at(from.index)!;
       const task = state[from.listId].tasks[taskId];
 
+      // Create a copy of list of tasks in listId
+      // Remove the task by taskId.
+      // Add the task to the destination index.
       const taskList = { ...state[listId].tasks };
       delete taskList[taskId];
-      const updatedTasks = addToObject(taskList, taskId, task.title, toIndex);
+      const updatedTasks = addToObject(taskList, taskId, { ...task }, to.index);
 
       return {
         ...state,
         [listId]: {
-          title: task.title,
+          title: state[listId].title,
           tasks: { ...updatedTasks },
         },
       };
-    } else {
     }
+    // If moved to another list.
+    else {
+      const { from, to } = action.payload;
 
-    return {
-      ...state,
-    };
+      // Key value pair to move
+      const taskId = Object.keys(state[from.listId].tasks).at(from.index)!;
+      const taskObj = state[from.listId].tasks[taskId];
+
+      // Create a new source list and remove the task from source position.
+      const fromList = { ...state[from.listId].tasks };
+      delete fromList[taskId];
+
+      // Add the task to desitation list.
+      const toList = { ...state[to.listId].tasks };
+      const updatedToList = addToObject(toList, taskId, taskObj, to.index);
+
+      return {
+        ...state,
+        [from.listId]: {
+          title: state[from.listId].title,
+          tasks: fromList,
+        },
+        [to.listId]: {
+          title: state[to.listId].title,
+          tasks: updatedToList,
+        },
+      };
+    }
   } else {
     return { ...state };
   }
